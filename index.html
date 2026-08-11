@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stefan Microcrédito, EI — Pedido de Financiamento</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gold: #C9A84C;
+  --gold-light: #E8C97A;
+  --dark: #0D0D0D;
+  --dark-2: #161616;
+  --dark-3: #1E1E1E;
+  --dark-4: #2A2A2A;
+  --text: #F0EDE8;
+  --muted: #9A9590;
+  --green: #4CAF84;
+  --red: #E05A5A;
+  --border: rgba(201,168,76,0.2);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--dark);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh}
+header{padding:1.5rem 2rem;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+.logo{display:flex;align-items:center;gap:.6rem}
+.logo-mark{width:38px;height:38px;background:linear-gradient(135deg,var(--gold),var(--gold-light));border-radius:10px;display:grid;place-items:center;font-family:'Playfair Display',serif;font-weight:900;font-size:1rem;color:var(--dark)}
+.logo-text{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700}
+.logo-text span{color:var(--gold)}
+.badge{font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);border:1px solid var(--border);padding:.35rem .8rem;border-radius:100px}
+
+/* Steps */
+.steps{display:flex;align-items:center;justify-content:center;gap:0;padding:2rem 1rem 0}
+.step{display:flex;flex-direction:column;align-items:center;gap:.3rem}
+.step-circle{width:34px;height:34px;border-radius:50%;border:2px solid var(--dark-4);background:var(--dark-3);display:grid;place-items:center;font-size:.78rem;font-weight:600;color:var(--muted);transition:all .3s}
+.step.active .step-circle{border-color:var(--gold);background:var(--gold);color:var(--dark)}
+.step.done .step-circle{border-color:var(--green);background:var(--green);color:var(--dark)}
+.step-lbl{font-size:.62rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.step.active .step-lbl{color:var(--gold)}
+.step.done .step-lbl{color:var(--green)}
+.step-line{width:70px;height:2px;background:var(--dark-4);margin-bottom:1.2rem;transition:background .3s}
+.step-line.done{background:var(--green)}
+
+/* Progress */
+.prog-wrap{height:3px;background:var(--dark-4);border-radius:100px;overflow:hidden;margin-bottom:1.8rem}
+.prog-bar{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-light));border-radius:100px;transition:width .5s}
+
+/* Card */
+.wrap{max-width:660px;margin:0 auto;padding:1.5rem}
+.card{background:var(--dark-2);border:1px solid var(--border);border-radius:18px;padding:2rem;position:relative;overflow:hidden;margin-top:1.5rem}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--gold),var(--gold-light))}
+
+/* Panel switching - using display none/block only */
+.panel{display:none}
+.panel.show{display:block}
+
+.sec-title{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;margin-bottom:.2rem}
+.sec-sub{font-size:.82rem;color:var(--muted);margin-bottom:1.5rem}
+
+/* Fields */
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:500px){.row2{grid-template-columns:1fr}header{padding:1rem}}
+.fld{margin-bottom:1rem}
+label{display:block;font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:.4rem}
+label .req{color:var(--gold)}
+input,select,textarea{width:100%;background:var(--dark-3);border:1.5px solid var(--dark-4);border-radius:9px;padding:.75rem .9rem;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;transition:border-color .2s;-webkit-appearance:none;appearance:none}
+input:focus,select:focus,textarea:focus{border-color:var(--gold)}
+input.bad,select.bad,textarea.bad{border-color:var(--red)}
+textarea{resize:vertical;min-height:80px}
+select option{background:var(--dark-3)}
+.errmsg{display:none;font-size:.73rem;color:var(--red);margin-top:.3rem;padding:.28rem .6rem;background:rgba(224,90,90,.09);border-left:3px solid var(--red);border-radius:4px;font-weight:500}
+.errmsg.show{display:block}
+
+/* Prefix */
+.pfx{position:relative}
+.pfx-lbl{position:absolute;left:.9rem;top:50%;transform:translateY(-50%);font-size:.82rem;color:var(--gold);font-weight:600;pointer-events:none}
+.pfx input{padding-left:2.8rem}
+
+/* Upload */
+.upload{border:2px dashed var(--dark-4);border-radius:9px;padding:1.2rem;text-align:center;cursor:pointer;transition:border-color .2s;position:relative}
+.upload:hover{border-color:var(--gold)}
+.upload input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.upload-txt{font-size:.78rem;color:var(--muted)}
+.upload-txt strong{color:var(--gold)}
+
+/* Info box */
+.info{background:rgba(201,168,76,.06);border:1px solid rgba(201,168,76,.2);border-radius:9px;padding:.9rem 1rem;margin-bottom:1.2rem;font-size:.8rem;color:var(--muted);line-height:1.6}
+.info strong{color:var(--gold)}
+.divider{height:1px;background:var(--border);margin:1.2rem 0}
+
+/* Buttons */
+.btn-row{display:flex;gap:.75rem;justify-content:flex-end;margin-top:1.5rem}
+.btn{padding:.7rem 1.6rem;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:600;cursor:pointer;border:none;transition:all .2s}
+.btn-ghost{background:transparent;border:1px solid var(--dark-4);color:var(--muted)}
+.btn-ghost:hover{border-color:var(--muted);color:var(--text)}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--dark);font-weight:700}
+.btn-gold:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(201,168,76,.3)}
+
+/* Summary */
+.sum-row{display:flex;justify-content:space-between;align-items:center;padding:.6rem 0;border-bottom:1px solid var(--border);font-size:.84rem}
+.sum-row:last-child{border:none}
+.sum-k{color:var(--muted)}
+.sum-v{font-weight:600}
+.sum-v.hi{color:var(--gold);font-size:.96rem}
+
+/* Checkbox */
+.chk-row{display:flex;align-items:flex-start;gap:.65rem;margin-top:1rem}
+.chk-row input[type=checkbox]{width:17px;height:17px;min-width:17px;margin-top:2px;accent-color:var(--gold);cursor:pointer}
+.chk-row label{font-size:.76rem;color:var(--muted);text-transform:none;letter-spacing:0;font-weight:400;cursor:pointer}
+.chk-row label a{color:var(--gold);text-decoration:none}
+
+/* Success */
+.success{display:none;text-align:center;padding:2.5rem 1rem}
+.success.show{display:block}
+.suc-icon{width:72px;height:72px;background:rgba(76,175,132,.12);border:2px solid var(--green);border-radius:50%;display:grid;place-items:center;font-size:1.8rem;margin:0 auto 1.2rem}
+.suc-h{font-family:'Playfair Display',serif;font-size:1.7rem;color:var(--green);margin-bottom:.6rem}
+.suc-p{font-size:.87rem;color:var(--muted);max-width:360px;margin:0 auto .4rem;line-height:1.7}
+.ref-box{display:inline-block;margin-top:1.2rem;padding:.5rem 1.2rem;background:var(--dark-3);border:1px solid var(--border);border-radius:7px;font-size:.78rem;color:var(--gold);letter-spacing:.1em;font-weight:600}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.card{animation:fadeUp .4s ease both}
+
+/* ── Contrato ── */
+.contrato-box-cli{background:var(--dark-3);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1.2rem;max-height:320px;overflow-y:auto;font-size:.78rem;line-height:1.8;color:var(--muted)}
+.contrato-box-cli h3{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--text);margin-bottom:.8rem;text-align:center;letter-spacing:.05em}
+.contrato-box-cli h4{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--gold);margin:.8rem 0 .3rem}
+.contrato-box-cli .cli{color:var(--text);font-weight:600;border-bottom:1px solid rgba(201,168,76,.3);padding:0 .2rem}
+.contrato-box-cli .linha-vazia{color:var(--muted);border-bottom:1px solid rgba(255,255,255,.2);padding:0 .3rem;min-width:100px;display:inline-block}
+.contrato-scroll-hint{font-size:.72rem;color:var(--muted);text-align:center;margin-bottom:.8rem}
+/* ── Modal de Edição ── */
+.edit-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);z-index:300;display:none;align-items:center;justify-content:center;padding:1rem;overflow-y:auto}
+.edit-overlay.open{display:flex}
+.edit-modal{background:var(--dark-2);border:1px solid var(--border);border-radius:18px;width:100%;max-width:640px;position:relative;overflow:hidden;animation:fadeUp .3s ease;margin:auto}
+.edit-modal::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--gold),var(--gold-light))}
+.edit-header{padding:1.3rem 1.6rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.edit-title{font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700}
+.edit-ref{font-size:.72rem;color:var(--gold);margin-top:.2rem}
+.edit-body{padding:1.5rem 1.6rem;max-height:70vh;overflow-y:auto}
+.edit-sec{margin-bottom:1.3rem}
+.edit-sec-title{font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:.8rem;padding-bottom:.35rem;border-bottom:1px solid var(--border)}
+.edit-row2{display:grid;grid-template-columns:1fr 1fr;gap:.9rem;margin-bottom:.9rem}
+@media(max-width:500px){.edit-row2{grid-template-columns:1fr}}
+.ef{margin-bottom:.9rem}
+.ef label{display:block;font-size:.7rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:.4rem}
+.ef input,.ef select,.ef textarea{width:100%;background:var(--dark-3);border:1.5px solid var(--dark-4);border-radius:8px;padding:.7rem .9rem;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.86rem;outline:none;transition:border-color .2s;-webkit-appearance:none}
+.ef input:focus,.ef select:focus,.ef textarea:focus{border-color:var(--gold)}
+.ef textarea{resize:vertical;min-height:75px}
+.ef select option{background:var(--dark-3)}
+.edit-footer{padding:1.1rem 1.6rem;border-top:1px solid var(--border);display:flex;gap:.75rem;justify-content:flex-end}
+.btn-cancel-edit{padding:.7rem 1.4rem;background:transparent;border:1px solid var(--dark-4);border-radius:8px;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:.87rem;cursor:pointer;transition:all .2s}
+.btn-cancel-edit:hover{border-color:var(--muted);color:var(--text)}
+.btn-save-edit{padding:.7rem 1.6rem;background:linear-gradient(135deg,var(--gold),var(--gold-light));border:none;border-radius:8px;color:var(--dark);font-family:'DM Sans',sans-serif;font-size:.87rem;font-weight:700;cursor:pointer;transition:all .2s}
+.btn-save-edit:hover{transform:translateY(-1px);box-shadow:0 5px 16px rgba(201,168,76,.3)}
+.edit-warn{background:rgba(232,168,76,.08);border:1px solid rgba(232,168,76,.2);border-radius:8px;padding:.8rem 1rem;font-size:.78rem;color:#E8A84C;margin-bottom:1rem;line-height:1.5}
+/* ── Consulta de pedido ── */
+.consulta-wrap{max-width:500px;margin:2rem auto 0;padding:0 1.5rem}
+.consulta-card{background:var(--dark-2);border:1px solid var(--border);border-radius:16px;padding:1.8rem;position:relative;overflow:hidden}
+.consulta-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--gold),var(--gold-light))}
+.consulta-title{font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700;margin-bottom:.3rem}
+.consulta-sub{font-size:.8rem;color:var(--muted);margin-bottom:1.2rem}
+.consulta-input-row{display:flex;gap:.6rem}
+.consulta-input-row input{flex:1;background:var(--dark-3);border:1.5px solid var(--dark-4);border-radius:9px;padding:.72rem .9rem;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.87rem;outline:none;transition:border-color .2s}
+.consulta-input-row input:focus{border-color:var(--gold)}
+.btn-consulta{padding:.72rem 1.2rem;background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--dark);font-family:'DM Sans',sans-serif;font-size:.85rem;font-weight:700;border:none;border-radius:9px;cursor:pointer;white-space:nowrap;transition:all .2s}
+.btn-consulta:hover{transform:translateY(-1px);box-shadow:0 5px 16px rgba(201,168,76,.3)}
+.result-box{margin-top:1.2rem;padding:1rem 1.2rem;border-radius:10px;display:none}
+.result-box.show{display:block}
+.result-box.pendente{background:rgba(232,168,76,.08);border:1px solid rgba(232,168,76,.3)}
+.result-box.analise{background:rgba(76,143,232,.08);border:1px solid rgba(76,143,232,.3)}
+.result-box.aprovado{background:rgba(76,175,132,.08);border:1px solid rgba(76,175,132,.3)}
+.result-box.recusado{background:rgba(224,90,90,.08);border:1px solid rgba(224,90,90,.3)}
+.result-box.erro{background:rgba(224,90,90,.08);border:1px solid rgba(224,90,90,.3)}
+.result-status{font-size:1rem;font-weight:700;margin-bottom:.3rem}
+.result-box.pendente .result-status{color:#E8A84C}
+.result-box.analise .result-status{color:#4C8FE8}
+.result-box.aprovado .result-status{color:#4CAF84}
+.result-box.recusado .result-status{color:#E05A5A}
+.result-box.erro .result-status{color:#E05A5A}
+.result-detail{font-size:.8rem;color:var(--muted);line-height:1.6}
+.result-nome{font-size:.82rem;color:var(--text);margin-bottom:.2rem;font-weight:500}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-mark">S</div>
+    <div class="logo-text">Stefan <span>Microcrédito</span></div>
+  </div>
+  <div class="badge">Pedido Online Seguro</div>
+</header>
+
+<!-- Steps bar -->
+<div class="steps" id="stepsBar">
+  <div class="step active" id="s1"><div class="step-circle">1</div><div class="step-lbl">Pessoal</div></div>
+  <div class="step-line" id="l1"></div>
+  <div class="step" id="s2"><div class="step-circle">2</div><div class="step-lbl">Financeiro</div></div>
+  <div class="step-line" id="l2"></div>
+  <div class="step" id="s3"><div class="step-circle">3</div><div class="step-lbl">Revisão</div></div>
+</div>
+
+<div class="wrap">
+  <div class="card" id="mainCard">
+    <div class="prog-wrap"><div class="prog-bar" id="prog" style="width:33%"></div></div>
+
+    <!-- ===== PANEL 1: DADOS PESSOAIS ===== -->
+    <div class="panel show" id="p1">
+      <div class="sec-title">Dados Pessoais</div>
+      <div class="sec-sub">Informações sobre o requerente</div>
+
+      <div class="row2">
+        <div class="fld">
+          <label>Nome Completo <span class="req">*</span></label>
+          <input type="text" id="f-nome" placeholder="ex: João Silva">
+          <div class="errmsg" id="e-nome">Insira o nome completo</div>
+        </div>
+        <div class="fld">
+          <label>BI / NUIT <span class="req">*</span></label>
+          <input type="text" id="f-bi" placeholder="ex: 1234567890100">
+          <div class="errmsg" id="e-bi">Insira o número de identificação</div>
+        </div>
+      </div>
+
+      <div class="row2">
+        <div class="fld">
+          <label>Data de Nascimento <span class="req">*</span></label>
+          <input type="date" id="f-nasc">
+          <div class="errmsg" id="e-nasc">Selecione a data de nascimento</div>
+        </div>
+        <div class="fld">
+          <label>Género <span class="req">*</span></label>
+          <select id="f-genero">
+            <option value="">-- Selecione --</option>
+            <option value="Masculino">Masculino</option>
+            <option value="Feminino">Feminino</option>
+            <option value="Outro">Prefiro não dizer</option>
+          </select>
+          <div class="errmsg" id="e-genero">Selecione o género</div>
+        </div>
+      </div>
+
+      <div class="row2">
+        <div class="fld">
+          <label>Telemóvel <span class="req">*</span></label>
+          <input type="tel" id="f-tel" placeholder="ex: 84 123 4567">
+          <div class="errmsg" id="e-tel">Insira um número de telemóvel válido</div>
+        </div>
+        <div class="fld">
+          <label>Email</label>
+          <input type="email" id="f-email" placeholder="ex: joao@email.com">
+        </div>
+      </div>
+
+      <div class="fld">
+        <label>Endereço Completo <span class="req">*</span></label>
+        <input type="text" id="f-end" placeholder="Bairro, rua, número...">
+        <div class="errmsg" id="e-end">Insira o endereço</div>
+      </div>
+
+      <div class="row2">
+        <div class="fld">
+          <label>Cidade / Província <span class="req">*</span></label>
+          <select id="f-cidade">
+            <option value="">-- Selecione --</option>
+            <option>Maputo Cidade</option>
+            <option>Maputo Província</option>
+            <option>Gaza</option>
+            <option>Inhambane</option>
+            <option>Sofala</option>
+            <option>Manica</option>
+            <option>Tete</option>
+            <option>Zambézia</option>
+            <option>Nampula</option>
+            <option>Cabo Delgado</option>
+            <option>Niassa</option>
+          </select>
+          <div class="errmsg" id="e-cidade">Selecione a cidade ou província</div>
+        </div>
+        <div class="fld">
+          <label>Estado Civil</label>
+          <select id="f-estado">
+            <option value="">-- Selecione --</option>
+            <option>Solteiro(a)</option>
+            <option>Casado(a)</option>
+            <option>União de Facto</option>
+            <option>Divorciado(a)</option>
+            <option>Viúvo(a)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-gold" onclick="goTo2()">Continuar →</button>
+      </div>
+    </div>
+
+    <!-- ===== PANEL 2: DADOS FINANCEIROS ===== -->
+    <div class="panel" id="p2">
+      <div class="sec-title">Dados do Financiamento</div>
+      <div class="sec-sub">Informações sobre o pedido e actividade</div>
+
+      <div class="info"><strong>💡 Dica:</strong> Preencha com informações reais. Dados precisos aceleram a análise do seu pedido.</div>
+
+      <div class="row2">
+        <div class="fld">
+          <label>Valor Solicitado (MZN) <span class="req">*</span></label>
+          <div class="pfx">
+            <span class="pfx-lbl">MT</span>
+            <input type="number" id="f-valor" placeholder="ex: 50000" min="1000" max="500000">
+          </div>
+          <div class="errmsg" id="e-valor">Insira um valor entre MT 1.000 e MT 500.000</div>
+        </div>
+        <div class="fld">
+          <label>Prazo de Pagamento <span class="req">*</span></label>
+          <select id="f-prazo">
+            <option value="">-- Selecione --</option>
+            <option value="1">1 mês</option>
+            <option value="2">2 meses</option>
+            <option value="3">3 meses</option>
+            <option value="6">6 meses</option>
+            <option value="12">12 meses</option>
+            <option value="18">18 meses</option>
+            <option value="24">24 meses</option>
+          </select>
+          <div class="errmsg" id="e-prazo">Selecione o prazo</div>
+        </div>
+      </div>
+
+      <div class="fld">
+        <label>Finalidade do Empréstimo <span class="req">*</span></label>
+        <select id="f-final">
+          <option value="">-- Selecione a finalidade --</option>
+          <option>Capital de Giro / Negócio</option>
+          <option>Compra de Equipamentos</option>
+          <option>Agricultura / Pecuária</option>
+          <option>Comércio / Retalho</option>
+          <option>Construção / Habitação</option>
+          <option>Educação</option>
+          <option>Saúde</option>
+          <option>Outro</option>
+        </select>
+        <div class="errmsg" id="e-final">Selecione a finalidade do empréstimo</div>
+      </div>
+
+      <div class="fld">
+        <label>Descrição do Negócio / Actividade <span class="req">*</span></label>
+        <textarea id="f-desc" placeholder="Descreva brevemente o seu negócio ou como pretende usar o financiamento..."></textarea>
+        <div class="errmsg" id="e-desc">Escreva pelo menos 10 caracteres descrevendo a actividade</div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="row2">
+        <div class="fld">
+          <label>Rendimento Mensal (MZN) <span class="req">*</span></label>
+          <div class="pfx">
+            <span class="pfx-lbl">MT</span>
+            <input type="number" id="f-rend" placeholder="ex: 15000" min="1">
+          </div>
+          <div class="errmsg" id="e-rend">Insira o rendimento mensal</div>
+        </div>
+        <div class="fld">
+          <label>Situação Laboral <span class="req">*</span></label>
+          <select id="f-sit">
+            <option value="">-- Selecione --</option>
+            <option>Empregado por conta de outrem</option>
+            <option>Trabalhador por conta própria</option>
+            <option>Empresário / Sócio</option>
+            <option>Agricultor</option>
+            <option>Desempregado</option>
+          </select>
+          <div class="errmsg" id="e-sit">Selecione a situação laboral</div>
+        </div>
+      </div>
+
+      <div class="fld">
+        <label>Nome e Contacto do Fiador (Opcional)</label>
+        <input type="text" id="f-fiador" placeholder="ex: Maria José — 82 987 6543">
+      </div>
+
+      <div class="fld">
+        <label>Documento de Identificação (Opcional)</label>
+        <div class="upload" id="uploadBox">
+          <input type="file" id="f-doc" accept=".pdf,.jpg,.jpeg,.png" onchange="handleFile(this)">
+          <div style="font-size:1.5rem;margin-bottom:.4rem">📎</div>
+          <div class="upload-txt"><strong>Clique para carregar</strong> — PDF, JPG ou PNG</div>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-ghost" onclick="goTo1()">← Voltar</button>
+        <button class="btn btn-gold" onclick="goTo3()">Rever Pedido →</button>
+      </div>
+    </div>
+
+    <!-- ===== PANEL 3: REVISÃO + CONTRATO ===== -->
+    <div class="panel" id="p3">
+      <div class="sec-title">Rever e Confirmar</div>
+      <div class="sec-sub">Verifique os seus dados e leia o contrato antes de submeter</div>
+
+      <div id="sumGrid"></div>
+
+      <div class="divider"></div>
+
+      <!-- CONTRATO -->
+      <div style="font-size:.75rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);margin-bottom:.6rem">📄 Contrato de Crédito</div>
+      <div class="contrato-scroll-hint">⬇ Role para ler o contrato completo antes de aceitar</div>
+      <div class="contrato-box-cli" id="contratoTexto">
+        <h3>CONTRATO DE CRÉDITO</h3>
+
+        <p>Entre a <strong>Stefan Microcrédito, EI</strong>, representada pelo Sr. <strong>Laque Eugénio Cossa</strong>, com domicílio em Xai-Xai, Bairro Ndambine 2000,</p>
+        <p>E, <span class="cli" id="ct-nome">—</span>, portador/a de BI N.º <span class="cli" id="ct-bi">—</span>, residente em <span class="cli" id="ct-end">—</span>, é celebrado o presente contrato de crédito:</p>
+
+        <h4>1. Montante</h4>
+        <p>A Stefan Microcrédito, EI concede um empréstimo de <span class="cli" id="ct-valor">—</span> Meticais (valor com 30% de juros: <span class="cli" id="ct-valor-juros">—</span> MT), quantia à qual o mutuário se confessa devedor.</p>
+
+        <h4>2. Prazo</h4>
+        <p>O contrato é concedido por <span class="cli" id="ct-prazo">—</span> meses, com prestação mensal de <span class="cli" id="ct-prestacao">—</span> MT.</p>
+
+        <h4>3. Plano de Pagamento</h4>
+        <p>a) O mutuário pagará a prestação mensalmente;<br>
+        b) O reembolso será feito por depósito bancário ou carteiras móveis nas contas indicadas pelo gestor;<br>
+        c) O plano de amortização pode ser alterado em função da disposição financeira do mutuário.</p>
+
+        <h4>4. Garantias e Penalizações</h4>
+        <p>a) O mutuário obriga-se a demonstrar rendimento e entregar declaração de bairro com BI;<br>
+        b) O não cumprimento na data prevista incorre em penalização de 5% de juros de mora durante 5 dias. Após este prazo, capitaliza em 30%;<br>
+        c) Em caso de incumprimento serão acrescidos 15% ao valor total da dívida referentes a cobrança coerciva.</p>
+
+        <h4>5. Proibição</h4>
+        <p>Não é reconhecida a cobrança ou entrega de valores fora dos números de conta mencionados no contrato.</p>
+
+        <h4>6. Foro</h4>
+        <p>As dúvidas serão resolvidas amigavelmente ou pelos tribunais de Moçambique.</p>
+
+        <h4>Dados Bancários</h4>
+        <p><strong>BCI:</strong> 3025682310001 &nbsp;|&nbsp; <strong>BIM:</strong> 339583906 &nbsp;|&nbsp; <strong>E-Mola:</strong> 872940945</p>
+      </div>
+
+      <div class="chk-row">
+        <input type="checkbox" id="f-contrato">
+        <label for="f-contrato">Li e aceito os termos do <strong>Contrato de Crédito</strong> acima, e declaro que as informações fornecidas são verídicas.</label>
+      </div>
+      <div class="errmsg" id="e-contrato" style="margin-top:.4rem">Deve ler e aceitar o contrato para continuar</div>
+
+      <div class="chk-row" style="margin-top:.6rem">
+        <input type="checkbox" id="f-termos">
+        <label for="f-termos">Aceito a <a href="#" style="color:var(--gold)">Política de Privacidade</a> da Stefan Microcrédito, EI.</label>
+      </div>
+      <div class="errmsg" id="e-termos" style="margin-top:.4rem">Deve aceitar a política de privacidade</div>
+
+      <div class="btn-row">
+        <button class="btn btn-ghost" onclick="goTo2()">← Voltar</button>
+        <button class="btn btn-gold" id="btnSubmit" onclick="doSubmit()">✓ Submeter Pedido</button>
+      </div>
+    </div>
+
+  </div><!-- /card -->
+
+  <!-- SUCCESS -->
+  <div class="success" id="successBox">
+    <div class="suc-icon">✓</div>
+    <div class="suc-h">Pedido Enviado!</div>
+    <p class="suc-p">O seu pedido foi recebido com sucesso. A nossa equipa entrará em contacto em até <strong style="color:var(--text)">24–48 horas úteis</strong>.</p>
+    <p class="suc-p">Guarde o número de referência abaixo.</p>
+    <div class="ref-box" id="refBox">REF: SM-2026-XXXXX</div>
+    <div style="margin-top:1.5rem">
+      <button class="btn btn-gold" onclick="resetAll()">Fazer Novo Pedido</button>
+    </div>
+  </div>
+
+</div><!-- /wrap -->
+
+<!-- ── CONSULTA DE PEDIDO ── -->
+<div class="consulta-wrap" id="consultaSection">
+  <div class="consulta-card">
+    <div class="consulta-title">🔍 Consultar / Editar Pedido</div>
+    <div class="consulta-sub">Após submeter o pedido, receberá um código de referência (ex: SM-2026-12345). Use-o aqui para verificar o estado ou editar o pedido.</div>
+    <div style="background:rgba(201,168,76,.06);border:1px solid rgba(201,168,76,.2);border-radius:8px;padding:.7rem 1rem;margin-bottom:.9rem;font-size:.78rem;color:var(--muted)">
+      ⚠️ <strong style="color:var(--gold)">A referência é gerada automaticamente</strong> após submeter o pedido — não é para preencher durante a solicitação.
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.7rem;margin-bottom:.7rem">
+      <div>
+        <div style="font-size:.68rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:.35rem">Nº de Referência</div>
+        <input type="text" id="refInput" placeholder="ex: SM-2026-12345" oninput="this.value=this.value.toUpperCase()" style="background:var(--dark-3);border:1.5px solid var(--dark-4);border-radius:9px;padding:.72rem .9rem;color:var(--text);font-family:DM Sans,sans-serif;font-size:.86rem;outline:none;transition:border-color .2s;width:100%">
+      </div>
+      <div>
+        <div style="font-size:.68rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:.35rem">Telemóvel do Pedido</div>
+        <input type="tel" id="telInput" placeholder="ex: 84 123 4567" style="background:var(--dark-3);border:1.5px solid var(--dark-4);border-radius:9px;padding:.72rem .9rem;color:var(--text);font-family:DM Sans,sans-serif;font-size:.86rem;outline:none;transition:border-color .2s;width:100%">
+      </div>
+    </div>
+    <button class="btn-consulta" onclick="consultarPedido()" style="width:100%">Consultar Pedido</button>
+    <div class="result-box" id="resultBox">
+      <div class="result-nome" id="resultNome"></div>
+      <div class="result-status" id="resultStatus"></div>
+      <div class="result-detail" id="resultDetail"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── EDIT MODAL ── -->
+<div class="edit-overlay" id="editOverlay" onclick="if(event.target===this)closeEditModal()">
+  <div class="edit-modal">
+    <div class="edit-header">
+      <div>
+        <div class="edit-title">✏️ Editar Pedido</div>
+        <div class="edit-ref" id="editRef"></div>
+      </div>
+      <button onclick="closeEditModal()" style="width:30px;height:30px;border-radius:7px;background:var(--dark-3);border:none;color:var(--muted);cursor:pointer;font-size:.9rem">✕</button>
+    </div>
+    <div class="edit-body">
+      <div class="edit-warn">⚠️ Só pode editar pedidos com estado <strong>Pendente</strong> ou <strong>Em Análise</strong>. Pedidos Aprovados ou Recusados não podem ser alterados.</div>
+
+      <div class="edit-sec">
+        <div class="edit-sec-title">Dados Pessoais</div>
+        <div class="edit-row2">
+          <div class="ef"><label>Nome Completo</label><input type="text" id="e-nome"></div>
+          <div class="ef"><label>BI / NUIT</label><input type="text" id="e-bi"></div>
+        </div>
+        <div class="edit-row2">
+          <div class="ef"><label>Data de Nascimento</label><input type="date" id="e-nasc"></div>
+          <div class="ef"><label>Género</label>
+            <select id="e-genero">
+              <option value="">-- Selecione --</option>
+              <option>Masculino</option><option>Feminino</option><option>Outro</option>
+            </select>
+          </div>
+        </div>
+        <div class="edit-row2">
+          <div class="ef"><label>Telemóvel</label><input type="tel" id="e-tel"></div>
+          <div class="ef"><label>Email</label><input type="email" id="e-email"></div>
+        </div>
+        <div class="ef"><label>Endereço</label><input type="text" id="e-end"></div>
+        <div class="edit-row2">
+          <div class="ef"><label>Cidade / Província</label>
+            <select id="e-cidade">
+              <option value="">-- Selecione --</option>
+              <option>Maputo Cidade</option><option>Maputo Província</option><option>Gaza</option>
+              <option>Inhambane</option><option>Sofala</option><option>Manica</option>
+              <option>Tete</option><option>Zambézia</option><option>Nampula</option>
+              <option>Cabo Delgado</option><option>Niassa</option>
+            </select>
+          </div>
+          <div class="ef"><label>Estado Civil</label>
+            <select id="e-estado">
+              <option value="">-- Selecione --</option>
+              <option>Solteiro(a)</option><option>Casado(a)</option>
+              <option>União de Facto</option><option>Divorciado(a)</option><option>Viúvo(a)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="edit-sec">
+        <div class="edit-sec-title">Dados do Financiamento</div>
+        <div class="edit-row2">
+          <div class="ef"><label>Valor Solicitado (MT)</label><input type="number" id="e-valor" min="1000" max="500000"></div>
+          <div class="ef"><label>Prazo</label>
+            <select id="e-prazo">
+              <option value="1">1 mês</option><option value="2">2 meses</option>
+              <option value="3">3 meses</option><option value="6">6 meses</option>
+              <option value="12">12 meses</option><option value="18">18 meses</option>
+              <option value="24">24 meses</option>
+            </select>
+          </div>
+        </div>
+        <div class="ef"><label>Finalidade</label>
+          <select id="e-final">
+            <option>Capital de Giro / Negócio</option><option>Compra de Equipamentos</option>
+            <option>Agricultura / Pecuária</option><option>Comércio / Retalho</option>
+            <option>Construção / Habitação</option><option>Educação</option>
+            <option>Saúde</option><option>Outro</option>
+          </select>
+        </div>
+        <div class="ef"><label>Descrição da Actividade</label><textarea id="e-desc"></textarea></div>
+        <div class="edit-row2">
+          <div class="ef"><label>Rendimento Mensal (MT)</label><input type="number" id="e-rend" min="1"></div>
+          <div class="ef"><label>Situação Laboral</label>
+            <select id="e-sit">
+              <option>Empregado por conta de outrem</option><option>Trabalhador por conta própria</option>
+              <option>Empresário / Sócio</option><option>Agricultor</option><option>Desempregado</option>
+            </select>
+          </div>
+        </div>
+        <div class="ef"><label>Fiador (Opcional)</label><input type="text" id="e-fiador" placeholder="Nome e contacto do fiador"></div>
+      </div>
+    </div>
+    <div class="edit-footer">
+      <button class="btn-cancel-edit" onclick="closeEditModal()">Cancelar</button>
+      <button class="btn-save-edit" id="btnSaveEdit" onclick="saveEdit()">Guardar Alterações</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Supabase ──
+var SB_URL = 'https://izawbzjoqbdgnyiipwrj.supabase.co';
+var SB_KEY = 'sb_publishable_6W_mAvBU9RRhq6mBSRle0Q_oleFyW7d';
+
+// ── Navigation helpers ──
+function showPanel(n) {
+  document.getElementById('p1').className = 'panel';
+  document.getElementById('p2').className = 'panel';
+  document.getElementById('p3').className = 'panel';
+  document.getElementById('p' + n).className = 'panel show';
+
+  // Update step indicators
+  for (var i = 1; i <= 3; i++) {
+    var s = document.getElementById('s' + i);
+    s.className = 'step';
+    if (i < n) s.className = 'step done';
+    else if (i === n) s.className = 'step active';
+  }
+  document.getElementById('l1').className = 'step-line' + (n > 1 ? ' done' : '');
+  document.getElementById('l2').className = 'step-line' + (n > 2 ? ' done' : '');
+
+  var pct = {1:'33%', 2:'66%', 3:'100%'};
+  document.getElementById('prog').style.width = pct[n];
+  window.scrollTo(0, 0);
+}
+
+// ── Field validation helpers ──
+function ok(fieldId, errId, isValid) {
+  var el = document.getElementById(fieldId);
+  var er = document.getElementById(errId);
+  if (isValid) {
+    el.classList.remove('bad');
+    er.classList.remove('show');
+  } else {
+    el.classList.add('bad');
+    er.classList.add('show');
+  }
+  return isValid;
+}
+
+function val(id) {
+  return document.getElementById(id).value;
+}
+
+// ── Step 1 validation ──
+function validateP1() {
+  var nome  = ok('f-nome',   'e-nome',   val('f-nome').trim().length >= 2);
+  var bi    = ok('f-bi',     'e-bi',     val('f-bi').trim().length >= 5);
+  var nasc  = ok('f-nasc',   'e-nasc',   val('f-nasc') !== '');
+  var gen   = ok('f-genero', 'e-genero', val('f-genero') !== '');
+  var tel   = ok('f-tel',    'e-tel',    val('f-tel').trim().length >= 8);
+  var end   = ok('f-end',    'e-end',    val('f-end').trim().length >= 3);
+  var cid   = ok('f-cidade', 'e-cidade', val('f-cidade') !== '');
+  return nome && bi && nasc && gen && tel && end && cid;
+}
+
+// ── Step 2 validation ──
+function validateP2() {
+  var vNum  = parseFloat(val('f-valor'));
+  var valor = ok('f-valor', 'e-valor', !isNaN(vNum) && vNum >= 1000 && vNum <= 500000);
+  var prazo = ok('f-prazo', 'e-prazo', val('f-prazo') !== '');
+  var final = ok('f-final', 'e-final', val('f-final') !== '');
+  var desc  = ok('f-desc',  'e-desc',  val('f-desc').trim().length >= 10);
+  var rNum  = parseFloat(val('f-rend'));
+  var rend  = ok('f-rend',  'e-rend',  !isNaN(rNum) && rNum > 0);
+  var sit   = ok('f-sit',   'e-sit',   val('f-sit') !== '');
+  return valor && prazo && final && desc && rend && sit;
+}
+
+// ── Navigation functions ──
+function goTo1() {
+  showPanel(1);
+}
+
+function goTo2() {
+  if (!validateP1()) return;
+  showPanel(2);
+}
+
+function goTo3() {
+  if (!validateP2()) return;
+  buildSummary();
+  showPanel(3);
+}
+
+// ── Build summary ──
+function fmt(n) {
+  return 'MT ' + parseFloat(n).toLocaleString('pt-MZ', {minimumFractionDigits:2});
+}
+
+function buildSummary() {
+  var rows = [
+    ['Nome Completo', val('f-nome')],
+    ['BI / NUIT', val('f-bi')],
+    ['Telemóvel', val('f-tel')],
+    ['Localização', val('f-cidade')],
+    ['Valor Solicitado', fmt(val('f-valor'))],
+    ['Prazo', val('f-prazo') + ' meses'],
+    ['Finalidade', val('f-final')],
+    ['Rendimento Mensal', fmt(val('f-rend'))],
+    ['Situação Laboral', val('f-sit')],
+  ];
+  var html = '';
+  rows.forEach(function(r, i) {
+    html += '<div class="sum-row"><span class="sum-k">' + r[0] + '</span><span class="sum-v' + (i===4?' hi':'') + '">' + r[1] + '</span></div>';
+  });
+  document.getElementById('sumGrid').innerHTML = html;
+
+  // Fill contract fields
+  var valorNum  = parseFloat(val('f-valor'))||0;
+  var prazoNum  = parseInt(val('f-prazo'))||1;
+  var comJuros  = valorNum * 1.30;
+  var prestacao = comJuros / prazoNum;
+  document.getElementById('ct-nome').textContent       = val('f-nome');
+  document.getElementById('ct-bi').textContent         = val('f-bi');
+  document.getElementById('ct-end').textContent        = val('f-end') + ', ' + val('f-cidade');
+  document.getElementById('ct-valor').textContent      = fmt(valorNum);
+  document.getElementById('ct-valor-juros').textContent= fmt(comJuros);
+  document.getElementById('ct-prazo').textContent      = val('f-prazo');
+  document.getElementById('ct-prestacao').textContent  = fmt(prestacao);
+}
+
+// ── Submit ──
+async function doSubmit() {
+  var contrato = document.getElementById('f-contrato');
+  var eContr   = document.getElementById('e-contrato');
+  var termos   = document.getElementById('f-termos');
+  var eTerm    = document.getElementById('e-termos');
+
+  var ok = true;
+  if (!contrato.checked) { eContr.classList.add('show'); ok = false; } else { eContr.classList.remove('show'); }
+  if (!termos.checked)   { eTerm.classList.add('show');  ok = false; } else { eTerm.classList.remove('show'); }
+  if (!ok) return;
+
+  var ref = 'SM-2026-' + Math.floor(10000 + Math.random() * 90000);
+  var pedido = {
+    ref: ref,
+    nome: val('f-nome'),
+    bi: val('f-bi'),
+    telemovel: val('f-tel'),
+    email: val('f-email'),
+    nascimento: val('f-nasc'),
+    genero: val('f-genero'),
+    endereco: val('f-end'),
+    cidade: val('f-cidade'),
+    estado_civil: val('f-estado'),
+    valor: parseFloat(val('f-valor')),
+    prazo: val('f-prazo'),
+    finalidade: val('f-final'),
+    descricao: val('f-desc'),
+    rendimento: parseFloat(val('f-rend')),
+    situacao: val('f-sit'),
+    fiador: val('f-fiador'),
+    status: 'pendente'
+  };
+
+  var btn = document.getElementById('btnSubmit');
+  btn.textContent = 'A enviar...';
+  btn.disabled = true;
+
+  try {
+    // Upload document if exists
+    var docFile = document.getElementById('f-doc').files[0];
+    if (docFile) {
+      btn.textContent = 'A enviar documento...';
+      var docUrl = await uploadDocumento(docFile, ref);
+      pedido.documento_url = docUrl;
+    }
+
+    btn.textContent = 'A guardar pedido...';
+    var res = await fetch(SB_URL + '/rest/v1/pedidos', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SB_KEY,
+        'Authorization': 'Bearer ' + SB_KEY,
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify(pedido)
+    });
+    if (!res.ok) { var e = await res.text(); throw new Error(e); }
+    document.getElementById('refBox').textContent = 'REF: ' + ref;
+    document.getElementById('mainCard').style.display = 'none';
+    document.getElementById('stepsBar').style.display = 'none';
+    document.getElementById('successBox').className = 'success show';
+    window.scrollTo(0,0);
+  } catch(e) {
+    btn.textContent = '✓ Submeter Pedido';
+    btn.disabled = false;
+    alert('Erro ao enviar. Verifique a ligação e tente novamente.\n\n' + e.message);
+  }
+}
+
+// ── Reset ──
+function resetAll() {
+  document.querySelectorAll('input:not([type=checkbox]):not([type=file]), select, textarea').forEach(function(el){ el.value=''; });
+  document.getElementById('f-termos').checked = false;
+  document.getElementById('f-contrato').checked = false;
+  document.getElementById('btnSubmit').textContent = '✓ Submeter Pedido';
+  document.getElementById('btnSubmit').disabled = false;
+  document.getElementById('mainCard').style.display = '';
+  document.getElementById('stepsBar').style.display = '';
+  document.getElementById('successBox').className = 'success';
+  showPanel(1);
+}
+
+// ── Consultar Pedido ──
+async function consultarPedido() {
+  var ref = document.getElementById('refInput').value.trim();
+  var tel = document.getElementById('telInput').value.trim();
+  var box    = document.getElementById('resultBox');
+  var nome   = document.getElementById('resultNome');
+  var status = document.getElementById('resultStatus');
+  var detail = document.getElementById('resultDetail');
+
+  if (!ref || !tel) {
+    box.className = 'result-box erro show';
+    nome.textContent = '';
+    status.textContent = '⚠️ Preencha os dois campos';
+    detail.innerHTML = 'Insira a referência (ex: SM-2026-12345) e o telemóvel usado no pedido.';
+    return;
+  }
+
+  status.textContent = 'A consultar...';
+  nome.textContent = '';
+  detail.innerHTML = '';
+  box.className = 'result-box analise show';
+
+  try {
+    var res = await fetch(SB_URL + '/rest/v1/pedidos?ref=eq.' + encodeURIComponent(ref) + '&select=*', {
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+    });
+    var data = await res.json();
+
+    if (!data || data.length === 0) {
+      box.className = 'result-box erro show';
+      status.textContent = '❌ Referência não encontrada';
+      detail.innerHTML = 'Verifique o número de referência e tente novamente.';
+      nome.textContent = '';
+      return;
+    }
+
+    var p = data[0];
+
+    // Verify phone number matches
+    var dbTel = (p.telemovel || '').replace(/\D/g, '');
+    var inTel = tel.replace(/\D/g, '');
+    if (dbTel !== inTel) {
+      box.className = 'result-box erro show';
+      status.textContent = '❌ Telemóvel não corresponde';
+      detail.innerHTML = 'O telemóvel inserido não corresponde ao registado no pedido.';
+      nome.textContent = '';
+      return;
+    }
+
+    var statusMap = {
+      pendente: { label: '⏳ Pedido Pendente',   msg: 'O seu pedido foi recebido e aguarda análise. Pode editar enquanto estiver pendente.' },
+      analise:  { label: '🔍 Em Análise',         msg: 'O seu pedido está a ser analisado. Ainda pode editar se necessário.' },
+      aprovado: { label: '✅ Pedido Aprovado!',   msg: 'Parabéns! O seu pedido foi aprovado. A equipa entrará em contacto brevemente.' },
+      recusado: { label: '❌ Pedido Recusado',    msg: 'O seu pedido não foi aprovado desta vez. Contacte-nos para mais informações.' }
+    };
+    var s = statusMap[p.status] || { label: p.status, msg: '' };
+
+    box.className = 'result-box ' + p.status + ' show';
+    nome.textContent = p.nome + ' — ' + p.ref;
+    status.textContent = s.label;
+
+    var editBtn = '';
+    if (p.status === 'pendente' || p.status === 'analise') {
+      editBtn = '<button onclick="openEditModal()" style="margin-top:.8rem;padding:.55rem 1.2rem;background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--dark);font-family:DM Sans,sans-serif;font-size:.82rem;font-weight:700;border:none;border-radius:8px;cursor:pointer;display:block">✏️ Editar Pedido</button>';
+    }
+
+    detail.innerHTML = s.msg
+      + '<br><span style="font-size:.78rem;opacity:.8">Valor: ' + fmt(parseFloat(p.valor)) + ' &nbsp;·&nbsp; Prazo: ' + p.prazo + ' meses &nbsp;·&nbsp; ' + p.finalidade + '</span>'
+      + editBtn;
+
+    window._pedidoAtual = p;
+
+  } catch(e) {
+    box.className = 'result-box erro show';
+    status.textContent = 'Erro de ligação';
+    detail.innerHTML = 'Verifique a internet e tente novamente.';
+  }
+}
+
+// ── File upload ──
+function handleFile(input) {
+  if (input.files[0]) {
+    document.querySelector('.upload-txt').innerHTML = '<strong style="color:var(--green)">✓ ' + input.files[0].name + '</strong>';
+  }
+}
+
+async function uploadDocumento(file, ref) {
+  if (!file) return null;
+  var ext = file.name.split('.').pop();
+  var path = ref + '.' + ext;
+  var res = await fetch(SB_URL + '/storage/v1/object/Documentos/' + path, {
+    method: 'POST',
+    headers: {
+      'apikey': SB_KEY,
+      'Authorization': 'Bearer ' + SB_KEY,
+      'Content-Type': file.type,
+      'x-upsert': 'true'
+    },
+    body: file
+  });
+  if (!res.ok) { var e = await res.text(); throw new Error('Erro no upload: ' + e); }
+  return SB_URL + '/storage/v1/object/public/Documentos/' + path;
+}
+</script>
+</body>
+</html>
